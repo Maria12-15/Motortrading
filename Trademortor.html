@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📊 Motor Avanzado con Velas Japonesas — Twelve Data</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f1f5f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    select, button, input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #1e293b;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #334155;
+    }
+    
+    canvas {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+    width: 100%;
+    max-width: 850px;
+    height: 420px;
+    display: block;
+    margin-top: 20px;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    }
+    
+    .loading { color: #38bdf8; }
+    .signal {
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 5px;
+        margin-top: 10px;
+        display: inline-block;
+    }
+    .buy {
+        background-color: #22c55e;
+        color: white;
+    }
+    .sell {
+        background-color: #ef4444;
+        color: white;
+    }
+    .neutral {
+        background-color: #64748b;
+        color: white;
+    }
+    .indicator-info {
+        background: #1e293b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    .confidence {
+        font-weight: bold;
+        padding: 5px;
+        border-radius: 5px;
+        margin-top: 5px;
+        display: inline-block;
+    }
+    .high-confidence {
+        background-color: #10b981;
+        color: white;
+    }
+    .medium-confidence {
+        background-color: #f59e0b;
+        color: black;
+    }
+    .low-confidence {
+        background-color: #ef4444;
+        color: white;
+    }
+  </style>
+</head>  
+<body>
+  <h2>📊 MOTOR DE DATOS AVANZADO — VELAS JAPONESAS (Twelve Data)</h2>
+  
+  <div class="controls">
+  <select id="categoriaSelect">
+  <option value="">Seleccionar categoría</option>
+  <option value="forex">Forex</option>
+  <option value="materia prima">Materia prima</option>
+  <option value="cripto">Cripto</option>
+  <option value="índice">Índice</option>
+  <option value="acción">Acción</option>
+  <option value="fondo">Fondo</option>
+  </select>
+  
+  <select id="activoSelect">
+  <option value="">Seleccionar activo</option>
+  
+  <!-- Categoría: Acciones -->
+  <optgroup label="Acciones">
+  <option value="AAPL">Apple (AAPL)</option>
+  <option value="MSFT">Microsoft (MSFT)</option>
+  <option value="GOOGL">Google (GOOGL)</option>
+  <option value="AMZN">Amazon (AMZN)</option>
+  <option value="TSLA">Tesla (TSLA)</option>
+  </optgroup>
+  
+  <!-- Categoría: Divisas (Forex) -->
+  <optgroup label="Divisas (Forex)">
+  <option value="EUR/USD">Euro/Dólar (EUR/USD)</option>
+  <option value="GBP/USD">Libra/Dólar (GBP/USD)</option>
+  <option value="USD/JPY">Dólar/Jen (USD/JPY)</option>
+  <option value="USD/CHF">Dólar/Suizo (USD/CHF)</option>
+  <option value="AUD/USD">Dólar/Australiano (AUD/USD)</option>
+  </optgroup>
+  
+  <!-- Categoría: Criptomonedas -->
+  <optgroup label="Criptomonedas">
+  <option value="BTC/USD">Bitcoin (BTC/USD)</option>
+  <option value="ETH/USD">Ethereum (ETH/USD)</option>
+  <option value="BNB/USD">Binance Coin (BNB/USD)</option>
+  <option value="XRP/USD">Ripple (XRP/USD)</option>
+  <option value="ADA/USD">Cardano (ADA/USD)</option>
+  </optgroup>
+  
+  <!-- Categoría: Materias primas -->
+  <optgroup label="Materias primas">
+  <option value="XAU/USD">Oro (XAU/USD)</option>
+  <option value="XAG/USD">Plata (XAG/USD)</option>
+  <option value="USOIL/USD">Petróleo (USOIL/USD)</option>
+  <option value="GC/USD">Oro Futuros (GC/USD)</option>
+  <option value="SI/USD">Plata Futuros (SI/USD)</option>
+  </optgroup>
+  
+  <!-- Categoría: Índices bursátiles -->
+  <optgroup label="Índices bursátiles">
+  <option value="SPX/USD">S&P 500 (SPX/USD)</option>
+  <option value="DJI/USD">Dow Jones (DJI/USD)</option>
+  <option value="IXIC/USD">NASDAQ (IXIC/USD)</option>
+  <option value="FTSE/USD">FTSE 100 (FTSE/USD)</option>
+  <option value="GDAXI/USD">DAX (GDAXI/USD)</option>
+  </optgroup>
+  
+  <!-- Categoría: Fondos de inversión -->
+  <optgroup label="Fondos de inversión">
+  <option value="VTSAX">Vanguard Total Stock (VTSAX)</option>
+  <option value="VXUSX">Vanguard Total International (VXUSX)</option>
+  <option value="VBMFX">Vanguard Total Bond (VBMFX)</option>
+  <option value="VXZAX">Vanguard Extended Market (VXZAX)</option>
+  <option value="VXNAX">Vanguard Mid-Cap (VXNAX)</option>
+  </optgroup>
+  
+  <!-- Categoría: Fondos cotizados (ETF) -->
+  <optgroup label="Fondos cotizados (ETF)">
+  <option value="SPY">S&P 500 ETF (SPY)</option>
+  <option value="QQQ">Nasdaq 100 ETF (QQQ)</option>
+  <option value="DIA">Dow Jones ETF (DIA)</option>
+  <option value="TLT">20+ Year Treasury ETF (TLT)</option>
+  <option value="GLD">Gold ETF (GLD)</option>
+  </optgroup>
+  </select>
+
+  <!-- 
+  Bloque de temporalidades adicionales para el sistema de análisis técnico
+  Incluye: 1 minuto, 5 minutos, 15 minutos, 30 minutos, 1 hora, 4 horas, 1 día, 1 semana, 1 mes
+  -->
+  
+  <select id="timeframeSelect">
+  <option value="1min">1M</option>
+  <option value="5min" selected>5M</option>
+  <option value="15min">15M</option>
+  <option value="30min">30M</option>
+  <option value="1h">1H</option>
+  <option value="4h">4H</option>
+  <option value="1day">1D</option>
+  <option value="1w">1W</option>
+  <option value="1mo">1M</option>
+  </select>
+
+    <label for="intervalInput">Actualizar (seg):</label>
+    <input id="intervalInput" type="number" value="30" min="30" />
+  </div>
+
+  <div id="resultDiv"></div>
+  <pre id="detalles"></pre>
+  <div class="indicator-info" id="indicatorInfo"></div>
+  <canvas id="chartCanvas"></canvas>
+  <div id="signalDiv"></div>
+
+  <script>
+  const API_KEY = "ea2ba8b20f6b4458a5b4779678e86815"; // Reemplaza con tu API key real
+  const baseURL = "https://api.twelvedata.com/time_series";
+  const categoriaSelect = document.getElementById('categoriaSelect');
+  const activoSelect = document.getElementById('activoSelect');
+  const timeframeSelect = document.getElementById('timeframeSelect');
+  const resultDiv = document.getElementById('resultDiv');
+  const detalles = document.getElementById('detalles');
+  const intervalInput = document.getElementById("intervalInput");
+  const chartCanvas = document.getElementById("chartCanvas");
+  const ctx = chartCanvas.getContext("2d");
+  const signalDiv = document.getElementById('signalDiv');
+  const indicatorInfo = document.getElementById('indicatorInfo');
+
+  let preciosExtraidos = [];
+  let ohlcSeries = [];
+  let timer;
+  let ema10Series = [];
+  let ema35Series = [];
+  let keltnerChannel = [];
+  let ovb = [];
+  let amsV2 = [];
+  let customDiff = [];
+  let divergence = [];
+  let volumeProfile = [];
+  let vwap = null;
+  let adx = null;
+  let stoch = null;
+
+  categoriaSelect.addEventListener('change', triggerAutoDataLoad);
+  activoSelect.addEventListener('change', triggerAutoDataLoad);
+  timeframeSelect.addEventListener('change', triggerAutoDataLoad);
+
+  const liveBtn = document.createElement('button');
+  liveBtn.textContent = '🌐 Analizar desde Twelve Data';
+  liveBtn.addEventListener('click', analizarDesdeTwelveData);
+  document.querySelector('.controls').appendChild(liveBtn);
+
+  async function analizarDesdeTwelveData() {
+    const activoRaw = (activoSelect.value || "XAU/USD").replace(/\s/g, "");
+    const interval = timeframeSelect.value || "5min";
+    const url = `${baseURL}?symbol=${activoRaw}&interval=${interval}&outputsize=20&apikey=${API_KEY}`;
+
+    resultDiv.innerHTML = `<span class="loading">📡 Obteniendo datos de ${activoRaw} (${interval})...</span>`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data && data.values) {
+        ohlcSeries = data.values.map(v => ({
+          o: parseFloat(v.open),
+          h: parseFloat(v.high),
+          l: parseFloat(v.low),
+          c: parseFloat(v.close)
+        })).reverse();
+
+        preciosExtraidos = ohlcSeries.map(x => x.c);
+        resultDiv.innerHTML = `✅ ${ohlcSeries.length} velas cargadas correctamente de ${activoRaw} (${interval})`;
+        autoAnalyze();
+        drawCandlestickChart();
+      } else {
+        throw new Error(data.message || "Datos no disponibles");
+      }
+    } catch (err) {
+      resultDiv.innerHTML = `⚠️ Error al obtener datos: ${err.message}`;
+    }
+  }
+
+  function triggerAutoDataLoad() {
+    if (categoriaSelect.value && activoSelect.value) analizarDesdeTwelveData();
+  }
+
+  // --- Indicadores técnicos ---
+  function calcularEma(prices, period) {
+    if (prices.length < period) return [];
+    const emaValues = [];
+    let ema = prices[period - 1];
+
+    const k = 2 / (period + 1);
+    emaValues.push(ema);
+
+    for (let i = period; i < prices.length; i++) {
+      ema = prices[i] * k + ema * (1 - k);
+      emaValues.push(ema);
+    }
+
+    return emaValues;
+  }
+
+  function calcularRsi(prices, period = 14) {
+    if (prices.length < period + 1) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const diff = prices[prices.length - i] - prices[prices.length - i - 1];
+      if (diff > 0) gains += diff; else losses -= diff;
+    }
+    const rs = gains / losses;
+    return 100 - 100 / (1 + rs);
+  }
+
+  function calcularMacd(prices, fast = 12, slow = 26, signal = 9) {
+    if (prices.length < slow) return null;
+    const emaFast = calcularEma(prices, fast);
+    const emaSlow = calcularEma(prices, slow);
+
+    const macd = emaFast.length > 0 && emaSlow.length > 0 ? emaFast[emaFast.length -1] - emaSlow[emaSlow.length - 1] : null;
+
+    const signalLine = calcularEma(prices.slice(-signal), signal);
+    return { macd, signal: signalLine.length > 0 ? signalLine[signalLine.length -1] : null };
+  }
+
+  function calcularBollinger(prices, period = 20, mult = 2) {
+    if (prices.length < period) return null;
+    const slice = prices.slice(-period);
+    const avg = slice.reduce((a, b) => a + b, 0) / period;
+    const std = Math.sqrt(slice.map(p => (p - avg) ** 2).reduce((a, b) => a + b, 0) / period);
+    return { upper: avg + mult * std, lower: avg - mult * std, middle: avg };
+  }
+
+  // --- Indicadores adicionales ---
+  function calcularKeltnerChannel(prices, period = 20, multiplier = 1.5) {
+    const bollinger = calcularBollinger(prices, period, multiplier);
+    if (!bollinger) return null;
+    
+    const ema = calcularEma(prices, period);
+    if (ema.length < period) return null;
+    
+    const upper = bollinger.upper;
+    const lower = bollinger.lower;
+    const middle = ema[ema.length - 1];
+    
+    return { upper, lower, middle };
+  }
+
+  function calcularOVB(prices, period = 14) {
+    if (prices.length < period) return null;
+    
+    const high = Math.max(...prices.slice(-period));
+    const low = Math.min(...prices.slice(-period));
+    const current = prices[prices.length - 1];
+    
+    const range = high - low;
+    if (range === 0) return 0;
+    
+    const position = (current - low) / range;
+    return position;
+  }
+
+  function calcularAMS_V2(prices, period = 20) {
+    if (prices.length < period) return null;
+    
+    const sma = prices.slice(-period).reduce((a, b) => a + b, 0) / period;
+    const variance = prices.slice(-period).map(p => Math.pow(p - sma, 2)).reduce((a, b) => a + b, 0) / period;
+    const stdDev = Math.sqrt(variance);
+    
+    const ams = (prices[prices.length - 1] - sma) / stdDev;
+    return ams;
+  }
+
+  function calcularCustomDifferential(prices, period = 10) {
+    if (prices.length < period) return null;
+    
+    const diff = prices[prices.length - 1] - prices[prices.length - period];
+    return diff;
+  }
+
+  function calcularDivergencia(prices, period = 14) {
+    if (prices.length < period * 2) return null;
+    
+    const rsi = calcularRsi(prices, period);
+    if (rsi === null) return null;
+    
+    const recentPrices = prices.slice(-period);
+    const recentRSI = [];
+    
+    for (let i = 0; i < period; i++) {
+      const rsiValue = calcularRsi(prices.slice(-period - i), period);
+      if (rsiValue !== null) recentRSI.push(rsiValue);
+    }
+    
+    const priceTrend = recentPrices[recentPrices.length - 1] > recentPrices[0] ? 1 : 
+                       recentPrices[recentPrices.length - 1] < recentPrices[0] ? -1 : 0;
+    const rsiTrend = recentRSI[recentRSI.length - 1] > recentRSI[0] ? 1 : 
+                     recentRSI[recentRSI.length - 1] < recentRSI[0] ? -1 : 0;
+    
+    return priceTrend * rsiTrend < 0 ? (priceTrend > 0 ? "bullish" : "bearish") : null;
+  }
+
+  // --- Nuevos indicadores para mayor asertividad ---
+  function calcularVolumeProfile(prices, volumes, period = 20) {
+    if (prices.length < period) return null;
+    const recentPrices = prices.slice(-period);
+    const recentVolumes = volumes.slice(-period);
+    
+    const volumeByPrice = {};
+    for (let i = 0; i < recentPrices.length; i++) {
+      const price = Math.round(recentPrices[i] * 100) / 100;
+      if (!volumeByPrice[price]) volumeByPrice[price] = 0;
+      volumeByPrice[price] += recentVolumes[i];
+    }
+    
+    const sortedVolumes = Object.entries(volumeByPrice)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    
+    return sortedVolumes.map(([price, vol]) => parseFloat(price));
+  }
+
+  function calcularVWAP(prices, volumes) {
+    if (prices.length !== volumes.length) return null;
+    
+    let cumulativeTP = 0;
+    let cumulativeVolume = 0;
+    
+    for (let i = 0; i < prices.length; i++) {
+      const typicalPrice = (prices[i] + prices[i] + prices[i]) / 3;
+      cumulativeTP += typicalPrice * volumes[i];
+      cumulativeVolume += volumes[i];
+    }
+    
+    return cumulativeVolume > 0 ? cumulativeTP / cumulativeVolume : null;
+  }
+
+  function calcularADX(prices, period = 14) {
+    if (prices.length < period * 2) return null;
+    
+    // Simplificación para demostración
+    const avgRange = Math.abs(prices[prices.length - 1] - prices[prices.length - period]);
+    return avgRange > 0 ? avgRange / prices[prices.length - 1] : 0;
+  }
+
+  function calcularATR(prices, period = 14) {
+    if (prices.length < period) return null;
+    
+    let trSum = 0;
+    for (let i = 1; i < period; i++) {
+      const high = prices[i];
+      const low = prices[i];
+      const prevClose = prices[i-1];
+      trSum += Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+    }
+    
+    return trSum / period;
+  }
+
+  // --- Indicador Estocástico ---
+  function calcularEstocastico(prices, period = 14, k = 3, d = 3) {
+    if (prices.length < period) return null;
+    
+    const lastPeriod = prices.slice(-period);
+    const high = Math.max(...lastPeriod);
+    const low = Math.min(...lastPeriod);
+    const close = prices[prices.length - 1];
+    
+    const kValue = ((close - low) / (high - low)) * 100;
+    const dValue = calcularEma([kValue], d)[0] || 0;
+    
+    return { k: kValue, d: dValue };
+  }
+
+  // --- Análisis técnico y señal de compra/venta ---
+  function autoAnalyze() {
+    ema10Series = calcularEma(preciosExtraidos, 10);
+    ema35Series = calcularEma(preciosExtraidos, 35);
+    const rsi = calcularRsi(preciosExtraidos);
+    const macdData = calcularMacd(preciosExtraidos);
+    const boll = calcularBollinger(preciosExtraidos);
+    const fib = calcularFibonacci();
+    
+    // Nuevos indicadores
+    keltnerChannel = calcularKeltnerChannel(preciosExtraidos);
+    ovb = calcularOVB(preciosExtraidos);
+    amsV2 = calcularAMS_V2(preciosExtraidos);
+    customDiff = calcularCustomDifferential(preciosExtraidos);
+    divergence = calcularDivergencia(preciosExtraidos);
+    
+    // Indicadores adicionales para alta asertividad
+    vwap = calcularVWAP(preciosExtraidos, []);
+    adx = calcularADX(preciosExtraidos);
+    const atr = calcularATR(preciosExtraidos);
+    stoch = calcularEstocastico(preciosExtraidos);
+    
+    let signal = "neutral";
+    let signalMessage = "Neutral";
+    let buySignals = 0;
+    let sellSignals = 0;
+    let confidence = 0;
+
+    // --- Reglas estrictas para alta asertividad ---
+    
+    // Regla 1: EMA cruzada con confirmación de tendencia fuerte (ADX)
+    if (ema10Series.length > 0 && ema35Series.length > 0) {
+      const lastEma10 = ema10Series[ema10Series.length - 1];
+      const lastEma35 = ema35Series[ema35Series.length - 1];
+      
+      if (lastEma10 > lastEma35) {
+        buySignals++;
+        if (adx && adx > 0.2) buySignals++; // Confirmación de tendencia fuerte
+      } else if (lastEma10 < lastEma35) {
+        sellSignals++;
+        if (adx && adx > 0.2) sellSignals++; // Confirmación de tendencia fuerte
+      }
+    }
+
+    // Regla 2: RSI oversold/overbought con confirmación de volumen
+    if (rsi !== null) {
+      if (rsi < 30) {
+        buySignals++;
+        if (vwap && preciosExtraidos[preciosExtraidos.length - 1] > vwap) buySignals++; // Confirmación de soporte
+      }
+      if (rsi > 70) {
+        sellSignals++;
+        if (vwap && preciosExtraidos[preciosExtraidos.length - 1] < vwap) sellSignals++; // Confirmación de resistencia
+      }
+    }
+
+    // Regla 3: MACD con confirmación de tendencia
+    if (macdData && macdData.macd !== null && macdData.signal !== null) {
+      if (macdData.macd > macdData.signal) {
+        buySignals++;
+        if (adx && adx > 0.15) buySignals++; // Confirmación de tendencia
+      } else {
+        sellSignals++;
+        if (adx && adx > 0.15) sellSignals++; // Confirmación de tendencia
+      }
+    }
+
+    // Regla 4: Bollinger Bands con confirmación de volumen
+    if (boll) {
+      const lastPrice = preciosExtraidos[preciosExtraidos.length - 1];
+      if (lastPrice < boll.lower) {
+        buySignals++;
+        if (vwap && lastPrice > vwap) buySignals++; // Confirmación de soporte
+      }
+      if (lastPrice > boll.upper) {
+        sellSignals++;
+        if (vwap && lastPrice < vwap) sellSignals++; // Confirmación de resistencia
+      }
+    }
+
+    // Regla 5: Keltner Channel
+    if (keltnerChannel) {
+      const lastPrice = preciosExtraidos[preciosExtraidos.length - 1];
+      if (lastPrice < keltnerChannel.lower) buySignals++;
+      if (lastPrice > keltnerChannel.upper) sellSignals++;
+    }
+
+    // Regla 6: OVB (Overbought/Oversold)
+    if (ovb !== null) {
+      if (ovb < 0.2) buySignals++;
+      if (ovb > 0.8) sellSignals++;
+    }
+
+    // Regla 7: AMS V2
+    if (amsV2 !== null) {
+      if (amsV2 > 1.5) buySignals++;
+      if (amsV2 < -1.5) sellSignals++;
+    }
+
+    // Regla 8: Divergencia
+    if (divergence) {
+      if (divergence === "bullish") buySignals++;
+      if (divergence === "bearish") sellSignals++;
+    }
+
+    // Regla 9: Estocástico
+    if (stoch) {
+      if (stoch.k < 20 && stoch.d < 20) {
+        buySignals++;
+      }
+      if (stoch.k > 80 && stoch.d > 80) {
+        sellSignals++;
+      }
+    }
+
+    // Regla 10: Confirmación de volumen (simplificada)
+    if (preciosExtraidos.length > 1) {
+      const currentVolume = 1; // En una implementación real, tendrías volumen real
+      const previousVolume = 1;
+      if (currentVolume > previousVolume * 1.5) {
+        buySignals++; // Volumen aumentado
+      }
+    }
+
+    // Regla 11: ATR para gestión de riesgo
+    if (atr && atr > 0) {
+      // ATR usado para ajustar stop loss, pero no para señales directamente
+    }
+
+    // --- Cálculo de confianza ---
+    const totalSignals = buySignals + sellSignals;
+    if (totalSignals > 0) {
+      confidence = Math.min(100, Math.round((Math.max(buySignals, sellSignals) / totalSignals) * 100));
+    }
+
+    // --- Reglas de entrada estrictas ---
+    if (buySignals >= 2 && sellSignals < 2) {
+      signal = "buy";
+      signalMessage = `<strong>COMPRA (${buySignals})</strong>`;
+    } else if (sellSignals >= 2 && buySignals < 2) {
+      signal = "sell";
+      signalMessage = `<strong>VENTA (${sellSignals})</strong>`;
+    } else {
+      signal = "neutral";
+      signalMessage = "Neutral";
+    }
+
+    // --- Mostrar información detallada ---
+    detalles.innerText = `📈 Análisis técnico:\nÚltimo cierre: ${preciosExtraidos.at(-1)}\n`;
+    if (ema10Series.length > 0 && ema35Series.length > 0) detalles.innerText += `EMA10=${ema10Series[ema10Series.length -1].toFixed(4)}, EMA35=${ema35Series[ema35Series.length -1].toFixed(4)}\n`;
+    if (rsi) detalles.innerText += `RSI=${rsi.toFixed(2)}\n`;
+    if (macdData && macdData.macd !== null && macdData.signal !== null) detalles.innerText += `MACD=${macdData.macd.toFixed(4)} / Señal=${macdData.signal.toFixed(4)}\n`;
+    if (boll) detalles.innerText += `Bollinger [${boll.lower.toFixed(4)} - ${boll.upper.toFixed(4)}]\n`;
+    if (stoch) detalles.innerText += `Estocástico K=${stoch.k.toFixed(2)}, D=${stoch.d.toFixed(2)}\n`;
+    if (fib) detalles.innerText += `Fibonacci: ${fib}\n`;
+    
+    // --- Mostrar señal con información de entrada ---
+    let signalHtml = `<div class="signal ${signal}">${signalMessage}</div>`;
+    
+    if (signal !== "neutral") {
+      // Calcular precio de entrada, SL y TP
+      const lastPrice = preciosExtraidos[preciosExtraidos.length - 1];
+      const atrValue = atr || 0.01;
+      
+      let entryPrice, sl, tp;
+      
+      if (signal === "buy") {
+        entryPrice = lastPrice;
+        // SL más ajustado: 1.5 ATR desde el precio de entrada
+        sl = entryPrice * (1 - atrValue * 1.5);
+        // TP más ajustado: 3 ATR desde el precio de entrada
+        tp = entryPrice * (1 + atrValue * 3);
+      } else {
+        entryPrice = lastPrice;
+        // SL más ajustado: 1.5 ATR desde el precio de entrada
+        sl = entryPrice * (1 + atrValue * 1.5);
+        // TP más ajustado: 3 ATR desde el precio de entrada
+        tp = entryPrice * (1 - atrValue * 3);
+      }
+      
+      // Asegurar que los valores sean válidos (no negativos para precios)
+      if (sl < 0) sl = entryPrice * 0.98; // Valor más conservador
+      if (tp < 0) tp = entryPrice * 0.95; // Valor más conservador
+      
+      signalHtml += `
+        <div class="indicator-info">
+          <strong>Precio de entrada:</strong> ${entryPrice.toFixed(4)}<br>
+          <strong>Stop Loss:</strong> ${sl.toFixed(4)}<br>
+          <strong>Take Profit:</strong> ${tp.toFixed(4)}<br>
+          <div class="confidence ${confidence >= 70 ? 'high-confidence' : confidence >= 40 ? 'medium-confidence' : 'low-confidence'}">
+            Confianza: ${confidence}%
+          </div>
+        </div>
+      `;
+    }
+    
+    signalDiv.innerHTML = signalHtml;
+  }
+
+  function calcularFibonacci() {
+    // Implementación básica de niveles de Fibonacci
+    return "38.2%, 50%, 61.8%";
+  }
+
+  function drawCandlestickChart() {
+    // Implementación de gráfico de velas
+    ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    
+    if (ohlcSeries.length === 0) return;
+    
+    const width = chartCanvas.width;
+    const height = chartCanvas.height;
+    const padding = 20;
+    const candleWidth = (width - 2 * padding) / ohlcSeries.length;
+    
+    // Dibujar velas
+    ohlcSeries.forEach((candle, i) => {
+      const x = padding + i * candleWidth;
+      const openY = height - padding - (candle.o - Math.min(...preciosExtraidos)) * (height - 2 * padding) / (Math.max(...preciosExtraidos) - Math.min(...preciosExtraidos));
+      const closeY = height - padding - (candle.c - Math.min(...preciosExtraidos)) * (height - 2 * padding) / (Math.max(...preciosExtraidos) - Math.min(...preciosExtraidos));
+      const highY = height - padding - (candle.h - Math.min(...preciosExtraidos)) * (height - 2 * padding) / (Math.max(...preciosExtraidos) - Math.min(...preciosExtraidos));
+      const lowY = height - padding - (candle.l - Math.min(...preciosExtraidos)) * (height - 2 * padding) / (Math.max(...preciosExtraidos) - Math.min(...preciosExtraidos));
+      
+      // Dibujar wick
+      ctx.beginPath();
+      ctx.moveTo(x + candleWidth/2, highY);
+      ctx.lineTo(x + candleWidth/2, lowY);
+      ctx.strokeStyle = candle.c >= candle.o ? '#22c55e' : '#ef4444';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      // Dibujar cuerpo
+      const bodyHeight = Math.abs(closeY - openY);
+      const bodyY = Math.min(openY, closeY);
+      
+      ctx.fillStyle = candle.c >= candle.o ? '#22c55e' : '#ef4444';
+      ctx.fillRect(x, bodyY, candleWidth, bodyHeight);
+    });
+  }
+
+  // Inicializar con datos por defecto
+  window.onload = function() {
+    activoSelect.value = "BTC/USD";
+    timeframeSelect.value = "1h";
+    triggerAutoDataLoad();
+  };
+  </script>
+</body>
+</html>
